@@ -1,11 +1,19 @@
 import dotenv from "dotenv"
+dotenv.config({
+    path:"./.env"
+})
+console.log("ENV CHECK:", {
+  cloud: process.env.CLOUDINARY_CLOUD_NAME,
+  key: process.env.CLOUDINARY_API_KEY,
+  secret: process.env.CLOUDINARY_API_SECRET
+});
+
 import connectDB from './db/index.js'
 import express from "express"
-import app from "./app.js"
 
-dotenv.config({
-    path:"./env"
-})
+
+
+import app from "./app.js"
 connectDB()
 .then(()=>{
     app.listen(process.env.PORT,()=>{

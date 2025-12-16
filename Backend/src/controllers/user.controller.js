@@ -3,7 +3,8 @@ import {ApiError} from "../utils/ApiError.js"
 import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse  } from "../utils/ApiResponse.js"
-
+import path from "path";
+import fs from "fs";
 const registerUser=asyncHandler(async(req,res)=>{
     //get user details from frontend
     //validation not empty
@@ -38,7 +39,7 @@ const registerUser=asyncHandler(async(req,res)=>{
     }
 
     //check unique username
-    const existedUser=User.findOne({
+    const existedUser=await User.findOne({
         $or:[{username},{email}]
     })
     if(existedUser){
@@ -48,16 +49,26 @@ const registerUser=asyncHandler(async(req,res)=>{
 
     //check for images ,check for avatoar
 
-    const avatarLocalPath=req.files?.avatar[0].path
-    const coverImageLocalPath=req.files?.coverImage[0].path
+    
+
+    const avatarLocalPath = path.resolve(req.files.avatar[0].path);
+    const coverImageLocalPath = path.resolve(req.files.coverImage[0].path);
+    console.log("Files:",req.files)
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar files is required")
     }
+    console.log(avatarLocalPath);
 
     //upload them to cloudinary
+    console.log(
+    "Exists:",
+    fs.existsSync(avatarLocalPath),
+    avatarLocalPath
+);
+
     const avatarCloudInstance=await uploadOnCloudinary(avatarLocalPath)
     const coverImageCloudInstance=await uploadOnCloudinary(coverImageLocalPath)
-
+    console.log(avatarCloudInstance)
     if(!avatarCloudInstance){
         throw new ApiError(400,"Avatar is required!")
     }
@@ -73,11 +84,11 @@ const registerUser=asyncHandler(async(req,res)=>{
         username:username.toLowerCase()
 
     })
-    const createdUser=await User.findId(user._id).select(
+    const createdUser=await User.findById(user._id).select(
         "-password -refreshToken"
     )
 
-    if(!createdUse){
+    if(!createdUser){
         throw new ApiError(500,"Something went wrong while registering the user")
     }
 
@@ -93,4 +104,4 @@ const registerUser=asyncHandler(async(req,res)=>{
  
     
 });
-export {registerUser,}
+export {registerUser}
